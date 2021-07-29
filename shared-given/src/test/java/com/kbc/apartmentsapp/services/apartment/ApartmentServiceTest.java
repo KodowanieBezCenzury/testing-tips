@@ -30,11 +30,12 @@ class ApartmentServiceTest {
     private final ApartmentService service = new ApartmentService(ownerRepository, apartmentRepository, addressCatalogue, eventRegistry);
 
     private final GivenOwner givenOwner = new GivenOwner(ownerRepository);
+    private final GivenApartment givenApartment = new GivenApartment(addressCatalogue, apartmentRepository);
 
     @Test
     void shouldNotAddApartmentWhenOwnerDoesNotExist() {
         OwnerId ownerId = givenOwner.notExisting();
-        ApartmentDto apartmentDto = givenValidApartmentDtoForNotExistingApartment();
+        ApartmentDto apartmentDto = givenApartment.validApartmentDtoForNotExisting();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
 
@@ -48,7 +49,7 @@ class ApartmentServiceTest {
     @Test
     void shouldRecognizeInvalidAddress() {
         OwnerId ownerId = givenOwner.existing();
-        ApartmentDto apartmentDto = givenApartmentDtoWithInvalidAddress();
+        ApartmentDto apartmentDto = givenApartment.apartmentDtoWithInvalidAddress();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
 
@@ -63,16 +64,10 @@ class ApartmentServiceTest {
         assertThat(captor.getValue().getCountry()).isEqualTo("Polska");
     }
 
-    private ApartmentDto givenApartmentDtoWithInvalidAddress() {
-        ApartmentDto apartmentDto = new ApartmentDto("Rynek Główny", "43", "2", "Kraków", "Polska");
-        given(addressCatalogue.check("Rynek Główny", "43", "2", "Kraków", "Polska")).willReturn(Optional.empty());
-        return apartmentDto;
-    }
-
     @Test
     void shouldReturnIdOfExistingApartment() {
         OwnerId ownerId = givenOwner.existing();
-        ApartmentDto apartmentDto = givenAparmentDtoForExistingApartment(ownerId);
+        ApartmentDto apartmentDto = givenApartment.apartmentDtoForExisting(ownerId);
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
 
@@ -81,19 +76,10 @@ class ApartmentServiceTest {
         then(apartmentRepository).should(never()).save(any());
     }
 
-    private ApartmentDto givenAparmentDtoForExistingApartment(OwnerId ownerId) {
-        ApartmentDto apartmentDto = new ApartmentDto("Rynek Główny", "43", "2", "Kraków", "Polska");
-        Address address = new Address("Rynek Główny", "43", "2", "Kraków", "Polska");
-        given(addressCatalogue.check("Rynek Główny", "43", "2", "Kraków", "Polska")).willReturn(Optional.of(address));
-        Apartment apartment = new Apartment(ownerId, address);
-        given(apartmentRepository.findBy(address)).willReturn(Optional.of(apartment));
-        return apartmentDto;
-    }
-
     @Test
     void shouldCreateNewApartment() {
         OwnerId ownerId = givenOwner.existing();
-        ApartmentDto apartmentDto = givenValidApartmentDtoForNotExistingApartment();
+        ApartmentDto apartmentDto = givenApartment.validApartmentDtoForNotExisting();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
 
@@ -107,16 +93,5 @@ class ApartmentServiceTest {
         assertThat(captor.getValue().getAddress().getApartmentNumber()).isEqualTo("2");
         assertThat(captor.getValue().getAddress().getCity()).isEqualTo("Kraków");
         assertThat(captor.getValue().getAddress().getCountry()).isEqualTo("Polska");
-    }
-
-    private ApartmentDto givenValidApartmentDtoForNotExistingApartment() {
-        ApartmentDto apartmentDto = new ApartmentDto("Rynek Główny", "43", "2", "Kraków", "Polska");
-        Address address = new Address("Rynek Główny", "43", "2", "Kraków", "Polska");
-        given(addressCatalogue.check("Rynek Główny", "43", "2", "Kraków", "Polska")).willReturn(Optional.of(address));
-        given(apartmentRepository.findBy(address)).willReturn(Optional.empty());
-        given(apartmentRepository.save(any())).will(invocation -> {
-            return ((Apartment) invocation.getArgument(0)).getId();
-        });
-        return apartmentDto;
     }
 }
