@@ -6,6 +6,7 @@ import com.kbc.apartmentsapp.apartment.*;
 import com.kbc.apartmentsapp.events.EventRegistry;
 import com.kbc.apartmentsapp.events.InvalidAddressRecognized;
 import com.kbc.apartmentsapp.events.OwnerNotFound;
+import com.kbc.apartmentsapp.owner.GivenOwner;
 import com.kbc.apartmentsapp.owner.OwnerId;
 import com.kbc.apartmentsapp.owner.OwnerRepository;
 import org.junit.jupiter.api.Test;
@@ -28,9 +29,11 @@ class ApartmentServiceTest {
     private final EventRegistry eventRegistry = mock(EventRegistry.class);
     private final ApartmentService service = new ApartmentService(ownerRepository, apartmentRepository, addressCatalogue, eventRegistry);
 
+    private final GivenOwner givenOwner = new GivenOwner(ownerRepository);
+
     @Test
     void shouldNotAddApartmentWhenOwnerDoesNotExist() {
-        OwnerId ownerId = givenNotExistingOwner();
+        OwnerId ownerId = givenOwner.notExisting();
         ApartmentDto apartmentDto = givenValidApartmentDtoForNotExistingApartment();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
@@ -42,15 +45,9 @@ class ApartmentServiceTest {
         assertThat(captor.getValue().getOwnerId()).isEqualTo(ownerId);
     }
 
-    private OwnerId givenNotExistingOwner() {
-        OwnerId ownerId = new OwnerId(UUID.randomUUID());
-        given(ownerRepository.exists(ownerId)).willReturn(false);
-        return ownerId;
-    }
-
     @Test
     void shouldRecognizeInvalidAddress() {
-        OwnerId ownerId = givenExistingOwner();
+        OwnerId ownerId = givenOwner.existing();
         ApartmentDto apartmentDto = givenApartmentDtoWithInvalidAddress();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
@@ -72,15 +69,9 @@ class ApartmentServiceTest {
         return apartmentDto;
     }
 
-    private OwnerId givenExistingOwner() {
-        OwnerId ownerId = new OwnerId(UUID.randomUUID());
-        given(ownerRepository.exists(ownerId)).willReturn(true);
-        return ownerId;
-    }
-
     @Test
     void shouldReturnIdOfExistingApartment() {
-        OwnerId ownerId = givenExistingOwner();
+        OwnerId ownerId = givenOwner.existing();
         ApartmentDto apartmentDto = givenAparmentDtoForExistingApartment(ownerId);
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
@@ -101,7 +92,7 @@ class ApartmentServiceTest {
 
     @Test
     void shouldCreateNewApartment() {
-        OwnerId ownerId = givenExistingOwner();
+        OwnerId ownerId = givenOwner.existing();
         ApartmentDto apartmentDto = givenValidApartmentDtoForNotExistingApartment();
 
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
