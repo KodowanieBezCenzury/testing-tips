@@ -1,4 +1,4 @@
-package services.apartment;
+package com.kbc.apartmentsapp.services.apartment;
 
 import com.kbc.apartmentsapp.address.AddressCatalogue;
 import com.kbc.apartmentsapp.apartment.*;
