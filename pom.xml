@@ -12,6 +12,7 @@
     <modules>
         <module>tests-template</module>
         <module>shared-given</module>
+        <module>fluent-assertion</module>
     </modules>
 
     <properties>
