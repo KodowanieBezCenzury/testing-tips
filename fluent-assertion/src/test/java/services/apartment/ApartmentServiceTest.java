@@ -79,8 +79,7 @@ class ApartmentServiceTest {
         ApartmentId apartmentId = service.add(ownerId, apartmentDto);
 
         assertThat(apartmentId).isNotEqualTo(ApartmentId.nullObject());
-        Apartment actual = thenApartmentWasCreated();
-        new ApartmentAssertion(actual)
+        new ApartmentAssertion(thenApartmentWasCreated())
             .hasIdEqualTo(apartmentId)
             .hasOwnerIdEqualTo(ownerId)
             .hasStreetEqualTo("Rynek Główny")
